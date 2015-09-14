@@ -1,10 +1,12 @@
 package com.example.ultron.androidlocationpicker;
 
+import android.location.Address;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -12,11 +14,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
-
+public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
     private MapView mMapView;
-
     private GoogleMap mGoogleMap;
+
+    private LocationModel mCurrentLocation;
 
     @Nullable
     private Marker mMarker = null;
@@ -31,50 +33,77 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
 
         // Gets to GoogleMap from the MapView and does initialization stuff
         mGoogleMap = mMapView.getMap();
-        mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mGoogleMap.getUiSettings().setAllGesturesEnabled(true);
-        mGoogleMap.setMyLocationEnabled(true);
+        if (mGoogleMap != null) {
+            mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+            mGoogleMap.getUiSettings().setAllGesturesEnabled(true);
+            mGoogleMap.setMyLocationEnabled(true);
 
-        // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
-        MapsInitializer.initialize(LocationPickerActivity.this);
+            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+            mGoogleMap.setOnMapLongClickListener(this);
 
-        LatLng currentLocation = new LatLng(0, 0);
-
-        // Updates the location and zoom of the MapView
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(currentLocation, 0);
-        mGoogleMap.animateCamera(cameraUpdate);
-
-        mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        mGoogleMap.setOnMapClickListener(this);
-        mGoogleMap.setOnMapLongClickListener(this);
-
+            // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
+            MapsInitializer.initialize(LocationPickerActivity.this);
+        } else {
+            Toast.makeText(this, "Google Play Services not found", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-    }
-
-    @Override
-    public void onMapLongClick(LatLng latLng) {
-
-        MarkerOptions markerOptions = new MarkerOptions()
-                .title(latLng.toString())
-                .position(latLng);
-
+    private void clearMarker() {
         if (mMarker != null) {
             mMarker.remove();
-            mMarker = mGoogleMap.addMarker(markerOptions);
+            mMarker = null;
+        }
+    }
+
+    @Override
+    public void onMapLongClick(final LatLng latLng) {
+        clearMarker();
+        mCurrentLocation = null;
+
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(latLng);
+
+        mMarker = mGoogleMap.addMarker(markerOptions);
+
+        ReverseGeocodingTask task = new ReverseGeocodingTask(this) {
+            @Override
+            protected void onPostExecute(Address address) {
+                if (address != null) {
+                    Toast.makeText(LocationPickerActivity.this, address.getAddressLine(0), Toast.LENGTH_SHORT).show();
+                    if (mMarker != null) {
+                        mMarker.setTitle(address.getCountryName());
+                        mMarker.showInfoWindow();
+                        mCurrentLocation = new LocationModel(address, latLng);
+                    }
+                } else {
+                    clearMarker();
+                }
+            }
+        };
+        task.execute(latLng);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_location_picker, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_select) {
+            finish();
+            return true;
         } else {
-            mMarker = mGoogleMap.addMarker(markerOptions);
+            return false;
         }
     }
 
     @Override
     public void onResume() {
-        mMapView.onResume();
         super.onResume();
+        mMapView.onResume();
     }
 
     @Override
