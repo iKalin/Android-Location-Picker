@@ -1,5 +1,6 @@
 package com.example.ultron.androidlocationpicker;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +24,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.List;
 
 public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
+    public final String EXTRA_LOCATION = "selected-location";
+
     private SearchView mSearchView;
 
     private MapView mMapView;
@@ -107,7 +110,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         return new LatLngBounds(southwest, northeast);
     }
 
-    private void setCurrentLocation(LocationModel location) {
+    private void setCurrentLocation(@Nullable LocationModel location) {
         if (mMarker != null) {
             mMarker.remove();
             mMarker = null;
@@ -153,7 +156,14 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_select) {
-            finish();
+            if (mCurrentLocation != null) {
+                Intent intent = new Intent();
+                intent.putExtra(EXTRA_LOCATION, mCurrentLocation);
+                setResult(RESULT_OK, intent);
+                finish();
+            } else {
+                Toast.makeText(this, "Please select location", Toast.LENGTH_SHORT).show();
+            }
             return true;
         } else {
             return false;
