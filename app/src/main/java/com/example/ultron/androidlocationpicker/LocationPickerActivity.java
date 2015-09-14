@@ -1,5 +1,6 @@
 package com.example.ultron.androidlocationpicker;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,6 +11,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -21,6 +25,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
@@ -66,8 +71,16 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         }
 
         final CardView searchResultsCardView = (CardView) findViewById(R.id.search_results_card_view);
-        // GONE initially
-        searchResultsCardView.setVisibility(View.GONE);
+        final ListView searchResultsView = (ListView) findViewById(R.id.search_results_list_view);
+        final ArrayAdapter<AutocompleteItem> resultsAdapter =
+                new ArrayAdapter<>(this, R.layout.row_autocomplete, R.id.suggestion_label);
+        searchResultsView.setAdapter(resultsAdapter);
+
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
 
         mSearchView = (SearchView) findViewById(R.id.locations_search_view);
 
@@ -77,6 +90,8 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
                 searchResultsCardView.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
             }
         });
+        // set initial card view state
+        searchResultsCardView.setVisibility(mSearchView.hasFocus() ? View.VISIBLE : View.GONE);
 
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -89,7 +104,19 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
                 AutocompleteSuggestionsTask task = new AutocompleteSuggestionsTask(mGoogleApiClient, searchBounds(), null) {
                     @Override
                     protected void onPostExecute(List<AutocompleteItem> autocompleteItems) {
-                        Log.d("SEARCH", autocompleteItems.toString());
+                        resultsAdapter.clear();
+                        resultsAdapter.addAll(autocompleteItems);
+
+                        int totalHeight = 0;
+                        for (int i = 0; i < resultsAdapter.getCount(); i++) {
+                            View listItem = resultsAdapter.getView(i, null, searchResultsView);
+                            listItem.measure(0, 0);
+                            totalHeight += listItem.getMeasuredHeight();
+                        }
+
+                        ViewGroup.LayoutParams params = searchResultsCardView.getLayoutParams();
+                        params.height = totalHeight + (searchResultsView.getDividerHeight() * (resultsAdapter.getCount() - 1));
+                        searchResultsCardView.setLayoutParams(params);
                     }
                 };
                 task.execute(newText);
@@ -97,11 +124,6 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             }
         });
 
-        mGoogleApiClient = new GoogleApiClient
-                .Builder(this)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
     }
 
     private LatLngBounds searchBounds() {

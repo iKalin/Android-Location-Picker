@@ -19,9 +19,6 @@ public class AutocompleteItem {
 
     @Override
     public String toString() {
-        return "AutocompleteItem{" +
-                "mName='" + mName + '\'' +
-                ", mPlaceId='" + mPlaceId + '\'' +
-                '}';
+        return mName;
     }
 }
