@@ -6,6 +6,26 @@
               tools:context="com.example.ultron.androidlocationpicker.LocationPickerActivity"
     >
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/location_picker_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:background="@color/wallet_highlighted_text_holo_dark"
+        android:elevation="2dp"
+        >
+
+        <SearchView
+            android:id="@+id/locations_search_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:iconifiedByDefault="false"
+            >
+
+        </SearchView>
+
+    </android.support.v7.widget.Toolbar>
+
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapview"
         android:layout_width="match_parent"

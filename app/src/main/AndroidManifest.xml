@@ -40,11 +40,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".LocationPickerActivity"
             android:label="@string/title_activity_location_picker"
             >
         </activity>
+
     </application>
 
 </manifest>
