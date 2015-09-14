@@ -1,7 +1,18 @@
 .gradle
 /local.properties
-/.idea/workspace.xml
-/.idea/libraries
 .DS_Store
 /build
 /captures
+
+/.idea/workspace.xml
+/.idea/libraries
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/gradle.xml
+/.idea/vcs.xml
+/.idea/inspectionProfiles/
+/.idea/.name
+/.idea/scopes
+
+# iml files which keeps regenerating
+*.iml
