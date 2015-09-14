@@ -3,9 +3,11 @@ package com.example.ultron.androidlocationpicker;
 import android.app.SearchManager;
 import android.content.Context;
 import android.location.Address;
+import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +22,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
-
+    private SearchView mSearchView;
     private MapView mMapView;
     private GoogleMap mGoogleMap;
 
@@ -35,14 +37,16 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         setContentView(R.layout.location_picker_layout);
         setSupportActionBar((Toolbar) findViewById(R.id.location_picker_toolbar));
 
-        SearchView searchView = (SearchView) findViewById(R.id.locations_search_view);
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        final CardView searchResultsCardView = (CardView) findViewById(R.id.search_results_card_view);
+        // GONE initially
+        searchResultsCardView.setVisibility(View.GONE);
 
-        searchView.setOnSearchClickListener(new View.OnClickListener() {
+        mSearchView = (SearchView) findViewById(R.id.locations_search_view);
+
+        mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public void onClick(View v) {
-                onSearchRequested();
+            public void onFocusChange(View v, boolean hasFocus) {
+                searchResultsCardView.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
             }
         });
 
@@ -72,6 +76,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         if (mMarker != null) {
             mMarker.remove();
             mMarker = null;
+            mSearchView.setQuery(null, false);
         }
 
         mCurrentLocation = location;
@@ -81,6 +86,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
                     .position(location.getLatLng());
             mMarker = mGoogleMap.addMarker(markerOptions);
             mMarker.showInfoWindow();
+            mSearchView.setQuery(location.getName(), false);
         }
     }
 
@@ -102,7 +108,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         };
         task.execute(latLng);
     }
-/**/
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_location_picker, menu);
