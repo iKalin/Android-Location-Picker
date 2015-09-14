@@ -1,31 +1,36 @@
 package com.example.ultron.androidlocationpicker;
 
-import android.app.SearchManager;
-import android.content.Context;
-import android.location.Address;
-import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SearchView;
 import android.widget.Toast;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import java.util.List;
 
 public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
     private SearchView mSearchView;
+
     private MapView mMapView;
     private GoogleMap mGoogleMap;
 
+    private GoogleApiClient mGoogleApiClient;
+
+    @Nullable
     private LocationModel mCurrentLocation;
 
     @Nullable
@@ -36,19 +41,6 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         super.onCreate(savedInstanceState);
         setContentView(R.layout.location_picker_layout);
         setSupportActionBar((Toolbar) findViewById(R.id.location_picker_toolbar));
-
-        final CardView searchResultsCardView = (CardView) findViewById(R.id.search_results_card_view);
-        // GONE initially
-        searchResultsCardView.setVisibility(View.GONE);
-
-        mSearchView = (SearchView) findViewById(R.id.locations_search_view);
-
-        mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                searchResultsCardView.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
-            }
-        });
 
         mMapView = (MapView) findViewById(R.id.mapview);
         mMapView.onCreate(savedInstanceState);
@@ -70,6 +62,49 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             finish();
         }
 
+        final CardView searchResultsCardView = (CardView) findViewById(R.id.search_results_card_view);
+        // GONE initially
+        searchResultsCardView.setVisibility(View.GONE);
+
+        mSearchView = (SearchView) findViewById(R.id.locations_search_view);
+
+        mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                searchResultsCardView.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                AutocompleteSuggestionsTask task = new AutocompleteSuggestionsTask(mGoogleApiClient, searchBounds(), null) {
+                    @Override
+                    protected void onPostExecute(List<AutocompleteItem> autocompleteItems) {
+                        Log.d("SEARCH", autocompleteItems.toString());
+                    }
+                };
+                task.execute(newText);
+                return false;
+            }
+        });
+
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .build();
+    }
+
+    private LatLngBounds searchBounds() {
+        LatLng northeast = new LatLng(45.497378, -132.107731);
+        LatLng southwest = new LatLng(31.848028, -72.078436);
+        return new LatLngBounds(southwest, northeast);
     }
 
     private void setCurrentLocation(LocationModel location) {
@@ -126,6 +161,18 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        mGoogleApiClient.connect();
+        super.onStop();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         mMapView.onResume();
@@ -133,8 +180,8 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         mMapView.onDestroy();
+        super.onDestroy();
     }
 
     @Override
