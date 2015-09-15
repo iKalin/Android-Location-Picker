@@ -4,9 +4,11 @@ import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReverseGeocodingTask extends AsyncTask<LatLng, Void, LocationModel> {
@@ -24,8 +26,16 @@ public class ReverseGeocodingTask extends AsyncTask<LatLng, Void, LocationModel>
         try {
             List<Address> addresses = geocoder.getFromLocation(coordinate.latitude, coordinate.longitude, 1);
             if (addresses != null && !addresses.isEmpty()) {
-                Log.d("LOCATION", addresses.get(0).toString());
-                return new LocationModel(addresses.get(0), coordinate);
+                Address address = addresses.get(0);
+
+                List<String> addressLines = new ArrayList<>();
+                for (int i = 0; i<= address.getMaxAddressLineIndex(); i++) {
+                    addressLines.add(i, address.getAddressLine(i));
+                }
+                String addressStr = TextUtils.join(", ", addressLines);
+
+                return new LocationModel(addressStr, addressStr,
+                                         address.getLongitude(), address.getLatitude());
             } else {
                 return new LocationModel(coordinate);
             }

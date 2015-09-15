@@ -14,22 +14,11 @@ public class LocationModel implements Serializable {
     private double mLongitude, mLatitude;
 
     public LocationModel(LatLng latLng) {
-        mName = String.format("%.2f, %.2f", latLng.latitude, latLng.longitude);
-        mAddress = null;
-        mLongitude = latLng.longitude;
-        mLatitude = latLng.latitude;
+        this(String.format("%.2f, %.2f", latLng.latitude, latLng.longitude), null, latLng);
     }
 
-    public LocationModel(Address address, LatLng latLng) {
-        List<String> addressLines = new ArrayList<>();
-        for (int i = 0; i<= address.getMaxAddressLineIndex(); i++) {
-            addressLines.add(i, address.getAddressLine(i));
-        }
-        String addressStr = TextUtils.join(", ", addressLines);
-        mAddress = addressStr;
-        mName = addressStr;
-        mLongitude = latLng.longitude;
-        mLatitude = latLng.latitude;
+    public LocationModel(String name, String address, LatLng latLng) {
+        this(name, address, latLng.longitude, latLng.latitude);
     }
 
     public LocationModel(String name, String address, double longitude, double latitude) {

@@ -1,23 +1,23 @@
 package com.example.ultron.androidlocationpicker;
 
-import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -25,7 +25,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import java.util.ArrayList;
 import java.util.List;
 
 public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
@@ -113,6 +112,21 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             }
         });
 
+        searchResultsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                mSearchView.clearFocus();
+
+                AutocompleteItem selectedItem = resultsAdapter.getItem(position);
+                FetchPlaceByIdTask task = new FetchPlaceByIdTask(mGoogleApiClient) {
+                    @Override
+                    protected void onPostExecute(LocationModel locationModel) {
+                        setCurrentLocation(locationModel, true);
+                    }
+                };
+                task.execute(selectedItem.getPlaceId());
+            }
+        });
     }
 
     private LatLngBounds searchBounds() {
@@ -121,7 +135,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         return new LatLngBounds(southwest, northeast);
     }
 
-    private void setCurrentLocation(@Nullable LocationModel location) {
+    private void setCurrentLocation(@Nullable LocationModel location, boolean changeCamera) {
         if (mMarker != null) {
             mMarker.remove();
             mMarker = null;
@@ -136,12 +150,17 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             mMarker = mGoogleMap.addMarker(markerOptions);
             mMarker.showInfoWindow();
             mSearchView.setQuery(location.getName(), false);
+
+            if (changeCamera) {
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(location.getLatLng(), 15);
+                mGoogleMap.moveCamera(cameraUpdate);
+            }
         }
     }
 
     @Override
     public void onMapLongClick(final LatLng latLng) {
-        setCurrentLocation(null);
+        setCurrentLocation(null, false);
 
         MarkerOptions markerOptions = new MarkerOptions()
                 .title("Retrieving location...")
@@ -152,7 +171,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         ReverseGeocodingTask task = new ReverseGeocodingTask(this) {
             @Override
             protected void onPostExecute(LocationModel location) {
-                setCurrentLocation(location);
+                setCurrentLocation(location, false);
             }
         };
         task.execute(latLng);
