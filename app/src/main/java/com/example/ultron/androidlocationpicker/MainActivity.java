@@ -8,8 +8,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+    private static int sLocationPickerRequestCode = 42;
 
-    private Button mLocationButton;
+    private LocationModel currentLocation;
     private TextView mLocationName;
 
     @Override
@@ -17,19 +18,30 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initViews();
+        Button locationButton = (Button) findViewById(R.id.location_button);
+        mLocationName = (TextView) findViewById(R.id.location_name);
 
-        mLocationButton.setOnClickListener(new View.OnClickListener() {
+        locationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, LocationPickerActivity.class);
-                startActivity(intent);
+                if (currentLocation != null) {
+                    intent.putExtra(LocationPickerActivity.EXTRA_LOCATION, currentLocation);
+                }
+                startActivityForResult(intent, sLocationPickerRequestCode);
             }
         });
     }
 
-    private void initViews() {
-        mLocationButton = (Button) findViewById(R.id.location_button);
-        mLocationName = (TextView) findViewById(R.id.location_name);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == sLocationPickerRequestCode) {
+            if (resultCode == RESULT_OK) {
+                currentLocation = (LocationModel) data.getSerializableExtra(LocationPickerActivity.EXTRA_LOCATION);
+                mLocationName.setText(currentLocation.getName());
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }
