@@ -36,6 +36,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
     private GoogleMap mGoogleMap;
 
     private GoogleApiClient mGoogleApiClient;
+    private SearchHistoryManager mHistoryManager;
 
     @Nullable
     private LocationModel mCurrentLocation;
@@ -69,17 +70,21 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             finish();
         }
 
-        final CardView searchResultsCardView = (CardView) findViewById(R.id.search_results_card_view);
-        final ListView searchResultsView = (ListView) findViewById(R.id.search_results_list_view);
-        final ArrayAdapter<AutocompleteItem> resultsAdapter =
-                new ArrayAdapter<>(this, R.layout.row_autocomplete, R.id.suggestion_label);
-        searchResultsView.setAdapter(resultsAdapter);
-
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
+
+        mHistoryManager = new SearchHistoryManager(this);
+
+        final CardView searchResultsCardView = (CardView) findViewById(R.id.search_results_card_view);
+        final ListView searchResultsView = (ListView) findViewById(R.id.search_results_list_view);
+
+        final ArrayAdapter<AutocompleteItem> resultsAdapter =
+                new ArrayAdapter<>(this, R.layout.row_autocomplete, R.id.suggestion_label,
+                                   mHistoryManager.searchHistory());
+        searchResultsView.setAdapter(resultsAdapter);
 
         mSearchView = (SearchView) findViewById(R.id.locations_search_view);
 
@@ -100,14 +105,20 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                AutocompleteSuggestionsTask task = new AutocompleteSuggestionsTask(mGoogleApiClient, searchBounds(), null) {
-                    @Override
-                    protected void onPostExecute(List<AutocompleteItem> autocompleteItems) {
-                        resultsAdapter.clear();
-                        resultsAdapter.addAll(autocompleteItems);
-                    }
-                };
-                task.execute(newText);
+                if (newText.isEmpty()) {
+                    resultsAdapter.clear();
+                    resultsAdapter.addAll(mHistoryManager.searchHistory());
+                } else {
+                    AutocompleteSuggestionsTask task =
+                            new AutocompleteSuggestionsTask(mGoogleApiClient, searchBounds(), null) {
+                                @Override
+                                protected void onPostExecute(List<AutocompleteItem> autocompleteItems) {
+                                    resultsAdapter.clear();
+                                    resultsAdapter.addAll(autocompleteItems);
+                                }
+                            };
+                    task.execute(newText);
+                }
                 return false;
             }
         });
@@ -125,6 +136,8 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
                     }
                 };
                 task.execute(selectedItem.getPlaceId());
+
+                mHistoryManager.addToHistory(selectedItem);
             }
         });
 
