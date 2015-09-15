@@ -36,6 +36,7 @@ public class AutocompleteSuggestionsTask extends AsyncTask<String, Void, List<Au
         for (AutocompletePrediction prediction : buffer) {
             items.add(new AutocompleteItem(prediction.getDescription(), prediction.getPlaceId()));
         }
+        buffer.release();
 
         return items;
     }
