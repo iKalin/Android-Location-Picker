@@ -28,7 +28,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.List;
 
 public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
-    public final String EXTRA_LOCATION = "selected-location";
+    public static final String EXTRA_LOCATION = "selected-location";
 
     private SearchView mSearchView;
 
