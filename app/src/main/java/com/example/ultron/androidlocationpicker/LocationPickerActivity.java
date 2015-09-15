@@ -127,6 +127,11 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
                 task.execute(selectedItem.getPlaceId());
             }
         });
+
+        LocationModel initialLocation = (LocationModel) getIntent().getSerializableExtra(EXTRA_LOCATION);
+        if (initialLocation != null) {
+            setCurrentLocation(initialLocation, true);
+        }
     }
 
     private LatLngBounds searchBounds() {
