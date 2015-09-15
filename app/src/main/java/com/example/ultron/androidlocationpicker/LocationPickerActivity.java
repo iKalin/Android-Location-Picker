@@ -170,7 +170,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             mSearchView.setQuery(location.getName(), false);
 
             if (changeCamera) {
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(location.getLatLng(), 15);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(location.getLatLng(), 17);
                 mGoogleMap.moveCamera(cameraUpdate);
             }
         }
