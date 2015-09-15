@@ -106,17 +106,6 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
                     protected void onPostExecute(List<AutocompleteItem> autocompleteItems) {
                         resultsAdapter.clear();
                         resultsAdapter.addAll(autocompleteItems);
-
-                        int totalHeight = 0;
-                        for (int i = 0; i < resultsAdapter.getCount(); i++) {
-                            View listItem = resultsAdapter.getView(i, null, searchResultsView);
-                            listItem.measure(0, 0);
-                            totalHeight += listItem.getMeasuredHeight();
-                        }
-
-                        ViewGroup.LayoutParams params = searchResultsCardView.getLayoutParams();
-                        params.height = totalHeight + (searchResultsView.getDividerHeight() * (resultsAdapter.getCount() - 1));
-                        searchResultsCardView.setLayoutParams(params);
                     }
                 };
                 task.execute(newText);

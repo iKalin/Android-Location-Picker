@@ -10,7 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="California, CA"
-        android:textSize="15sp"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
         android:layout_margin="10dp"
         android:layout_centerVertical="true"
         />
