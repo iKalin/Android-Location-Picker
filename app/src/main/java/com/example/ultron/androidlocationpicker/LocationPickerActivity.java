@@ -1,6 +1,7 @@
 package com.example.ultron.androidlocationpicker;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -15,19 +16,23 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.List;
 
-public class LocationPickerActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
+public class LocationPickerActivity extends AppCompatActivity
+        implements GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener,
+        GoogleApiClient.ConnectionCallbacks {
     public static final String EXTRA_LOCATION = "selected-location";
 
     private SearchView mSearchView;
@@ -44,6 +49,8 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
     @Nullable
     private Marker mMarker = null;
 
+    private boolean showCurrentLocationWhenConnected = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +60,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
         mMapView = (MapView) findViewById(R.id.mapview);
         mMapView.onCreate(savedInstanceState);
 
-        // Gets to GoogleMap from the MapView and does initialization stuff
+        // Gets GoogleMap from the MapView and does initialization stuff
         mGoogleMap = mMapView.getMap();
         if (mGoogleMap != null) {
             mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
@@ -62,6 +69,7 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
 
             mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
             mGoogleMap.setOnMapLongClickListener(this);
+            mGoogleMap.setOnCameraChangeListener(this);
 
             // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
             MapsInitializer.initialize(LocationPickerActivity.this);
@@ -70,10 +78,14 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             finish();
         }
 
+        // SEARCH
+
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
                 .build();
 
         mHistoryManager = new SearchHistoryManager(this);
@@ -141,8 +153,11 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             }
         });
 
+        // INITIAL LOCATION
+
         LocationModel initialLocation = (LocationModel) getIntent().getSerializableExtra(EXTRA_LOCATION);
         if (initialLocation != null) {
+            showCurrentLocationWhenConnected = false;
             setCurrentLocation(initialLocation, true);
         }
     }
@@ -193,6 +208,26 @@ public class LocationPickerActivity extends AppCompatActivity implements GoogleM
             }
         };
         task.execute(latLng);
+    }
+
+    @Override
+    public void onCameraChange(CameraPosition cameraPosition) {
+        showCurrentLocationWhenConnected = false;
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (showCurrentLocationWhenConnected && lastLocation != null) {
+            LatLng latLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+            mGoogleMap.moveCamera(cameraUpdate);
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 
     @Override
