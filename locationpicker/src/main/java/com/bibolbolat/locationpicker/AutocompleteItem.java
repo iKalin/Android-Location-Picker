@@ -1,4 +1,4 @@
-package com.example.ultron.androidlocationpicker;
+package com.bibolbolat.locationpicker;
 
 public class AutocompleteItem {
     private final String mName;

@@ -1,4 +1,4 @@
-package com.example.ultron.androidlocationpicker;
+package com.bibolbolat.locationpicker;
 
 import android.os.AsyncTask;
 import com.google.android.gms.common.api.GoogleApiClient;

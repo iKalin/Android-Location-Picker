@@ -1,11 +1,10 @@
-package com.example.ultron.androidlocationpicker;
+package com.bibolbolat.locationpicker;
 
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import java.io.IOException;
 import java.util.ArrayList;

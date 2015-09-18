@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">LocationPicker</string>
+
+    <string name="title_activity_location_picker">LocationPicker</string>
+    <string name="action_select_location">Select</string>
+    <string name="searchable_label">Search Locations</string>
+    <string name="title_activity_search_results">SearchResultsActivity</string>
+</resources>

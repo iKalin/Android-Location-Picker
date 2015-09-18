@@ -1,4 +1,4 @@
-package com.example.ultron.androidlocationpicker;
+package com.bibolbolat.locationpicker;
 
 import android.content.Intent;
 import android.location.Location;

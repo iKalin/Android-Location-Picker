@@ -1,4 +1,4 @@
-package com.example.ultron.androidlocationpicker;
+package com.bibolbolat.locationpicker;
 
 import android.location.Address;
 import android.support.annotation.Nullable;
