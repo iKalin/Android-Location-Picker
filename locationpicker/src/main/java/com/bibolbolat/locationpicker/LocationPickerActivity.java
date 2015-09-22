@@ -55,7 +55,16 @@ public class LocationPickerActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.location_picker_layout);
-        setSupportActionBar((Toolbar) findViewById(R.id.location_picker_toolbar));
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.location_picker_toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationIcon(R.mipmap.arrow_left);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         mMapView = (MapView) findViewById(R.id.mapview);
         mMapView.onCreate(savedInstanceState);

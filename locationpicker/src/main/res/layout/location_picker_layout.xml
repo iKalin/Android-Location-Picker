@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:minHeight="?attr/actionBarSize"
-        android:background="@color/wallet_highlighted_text_holo_dark"
+        android:background="@color/primary"
         android:elevation="2dp"
         >
 
