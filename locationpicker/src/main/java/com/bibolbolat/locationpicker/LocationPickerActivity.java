@@ -58,7 +58,7 @@ public class LocationPickerActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.location_picker_toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(R.mipmap.arrow_left);
+        toolbar.setNavigationIcon(R.mipmap.close);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
