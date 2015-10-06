@@ -270,7 +270,7 @@ public class LocationPickerActivity extends AppCompatActivity
 
     @Override
     protected void onStop() {
-        mGoogleApiClient.connect();
+        mGoogleApiClient.disconnect();
         super.onStop();
     }
 
